@@ -1,0 +1,31 @@
+<!--<div ng-include="'ng/project-nav-header/template.html'"></div>-->
+
+<div class="container home-container" ng-controller="homeCtrl">
+  <div class="row"></div>
+  <div class="row">
+    <div class="col-xs-6">
+      <a href=""
+         ng-click="getPublicStuff()">
+        Click here to access public API
+      </a>
+    </div>
+    <div class="col-xs-6">
+      <a href=""
+         ng-click="getProtectedStuff()">
+        Click here to access protected API
+      </a>
+    </div>
+  </div>
+  
+  <div class="alert alert-warning"
+       ng-show="message">{{message}}</div>
+  
+</div>
+
+
+<link rel="stylesheet" type="text/css"
+      href="/ng/home/style.css">
+
+<style>
+
+</style>

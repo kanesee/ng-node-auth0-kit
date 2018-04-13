@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en" ng-app="app">
+<head>
+  <title>RSX</title>
+  <base href="/">
+  
+  <!-- #### CSS #### -->
+  <link rel="stylesheet" type="text/css"
+        href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css"
+        href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css">
+
+  <!-- #### JS #### -->
+
+  <!-- jquery/angular/bootstrap plugins -->
+  <script
+    src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"
+    crossorigin="anonymous">
+  </script>
+  <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js">
+  </script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.6.9/angular.min.js"></script>
+  <script src="//cdn.rawgit.com/indrimuska/angular-switcher/master/dist/angular-switcher.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.6.9/angular-route.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/angular-ui-router/1.0.3/angular-ui-router.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/2.5.0/ui-bootstrap-tpls.min.js"></script>
+  
+  <!-- angularjs app modules -->
+  <script src="/assets/js/app.js"></script>
+  <script src="/ng/authCtrl/controller.js"></script>
+  <script src="/ng/home/controller.js"></script>
+
+
+  <!-- Auth0 -->
+  <script src="/assets/auth0/auth0-variables.js"></script>
+  <script src="//cdn.auth0.com/js/auth0/9.3.1/auth0.min.js"></script>
+  <script src="/assets/auth0/angular-auth0.min.js"></script>
+  <script src="/assets/auth0/auth0.services.js"></script>
+  <script src="/assets/auth0/app.run.js"></script>
+  <script src="/assets/auth0/callback/callback.controller.js"></script>
+  <script src="/ng/authCtrl/controller.js"></script>
+
+  <!-- misc -->
+  
+</head>
+<body>
+  
+  <div class="home">
+    <a href="#/"><i class="fa fa-home" aria-hidden="true"></i></a>
+  </div>
+
+  <div ng-include="'ng/authCtrl/template.html'"></div>
+
+  <div ng-view 
+       style="height: 100%"></div>
+  
+  
+
+</body>
+</html>
