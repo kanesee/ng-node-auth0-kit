@@ -36,17 +36,26 @@ console.log('AuthService Listening on port '+authPort);
  * to check if the user is authenticated before they go through the trouble of 
  * filling out the form just to find out they have to authenticate and it wipes
  * away their input.
+ *
+ * Note also how we are getting the user payload. You must have either the
+ * requireAuth or decodeAuthIfExist middleware for the req.user object to
+ * be filled
  ***/
 app.get('/auth/check'
-       , auth.checkJwt
-       , function(req, res) { res.send('authenticated'); }
+       , auth.requireAuth
+       , function(req, res) {
+           console.log('user: ' + JSON.stringify(req.user));
+           var userid = req.user.sub;
+           res.send('authenticated '+userid);
+         }
        );
 
 
 app.get('/api/public'
+      , auth.decodeAuthIfExist
       , api.getPublicStuff);
 app.get('/api/protected'
-      , auth.checkJwt
+      , auth.requireAuth
       , api.getProtectedStuff);
 
 

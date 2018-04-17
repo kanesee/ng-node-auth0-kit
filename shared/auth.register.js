@@ -17,7 +17,7 @@ router.post('/auth/register'
  **************************************/
 function registerUser(req, res) {
   var userid = req.body.userid;
-  var username = req.body.name;
+  var username = req.body.username;
   var email = req.body.email;
 
   var sql = 'INSERT INTO user(userid,username,email) VALUES(?,?,?)';

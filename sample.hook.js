@@ -10,7 +10,7 @@ module.exports = function (user, context, cb) {
   var url = 'http://YOUR_SERVER:3334/auth/register';
   var data = {
     userid: user.id,
-    name: user.username,
+    username: user.username,
     email: user.email
   }
   var options = {
