@@ -1,0 +1,24 @@
+<div class="container"
+     ng-controller="emailUnverifiedCtrl">
+  
+  
+  <div class="row">
+    <div class="col-xs-12">
+      <p>The email on your account has not been verified.</p>
+      <p>Please verify your email before logging in.
+      <br>Look in your inbox for the verification email
+      with a subject line of <b>Verify your email</b> from <b>RSX-Authorization</b>.
+      </p>
+      <span ng-show="userid">
+        <p>or <a href="" ng-click="resendVerifyEmail()">click here</a> to have another verification email sent to you.</p>
+      </span>
+      <div class="alert alert-success"
+           ng-show="isEmailed">
+        Verification email successfully resent. Please check your inbox now.
+        <br>After you've verified, please return to the site, and
+        <a href=""
+           ng-click="logIn()">Login</a>
+      </div>
+    </div>
+  </div>
+</div>

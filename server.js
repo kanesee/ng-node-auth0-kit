@@ -28,6 +28,9 @@ var authPort = 3334;
 authapp.listen(authPort);
 console.log('AuthService Listening on port '+authPort);
 
+app.post('/auth/email/verification/send/:userid',
+        auth.sendEmailVerification);
+
 /**
  * Use this on any page that you want to check if the user is authenticated
  * before showing them the content. You can use this as a way to protect a page

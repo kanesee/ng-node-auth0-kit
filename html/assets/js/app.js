@@ -11,6 +11,12 @@ app.config(['$routeProvider',
       .when('/', {
         templateUrl: '/ng/home/template.html'
       })
+      .when('/auth-required', {
+        templateUrl: 'ng/auth-required/template.html'
+      })
+      .when('/email-unverified/:userid?', {
+        templateUrl: 'ng/email-unverified/template.html'
+      })
       .otherwise({
         redirectTo: '/'
       });

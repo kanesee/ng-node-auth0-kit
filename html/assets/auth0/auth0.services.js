@@ -9,7 +9,7 @@ const USER_ACTIVE_UNTIL = {
 }
 
 /** For Auth0, you should only use forever **/
-const SESSION_PERSISTANCE = USER_ACTIVE_UNTIL.forever;
+const SESSION_PERSISTANCE = USER_ACTIVE_UNTIL.sessionExpires;
 
 
 app.constant('AUTH_EVENTS', {
@@ -37,8 +37,8 @@ app.config(['$stateProvider','angularAuth0Provider',
     clientID: AUTH0_CLIENT_ID,
     domain: AUTH0_DOMAIN,
     responseType: 'token id_token',
-//    audience: 'https://' + AUTH0_DOMAIN + '/userinfo',
-    audience: AUTH0_AUDIENCE,
+   // audience: 'https://' + AUTH0_DOMAIN + '/userinfo', // for client-side only authentication (securing html pages)
+    audience: AUTH0_AUDIENCE, // for server-side api authentication, you need to create an "Auth0 API" (securing rest calls)
     redirectUri: AUTH0_CALLBACK_URL,
     scope: 'openid'
   });
@@ -61,8 +61,12 @@ app.service('AuthService',
                       ) {
 
   function login() {
-    console.log('track url to redirect to after login: '+$location.path())
-    $window.localStorage.setItem('nextPath', $location.path());
+    var path = $location.path();
+    if( path.indexOf('/auth-required') == -1
+    &&  path.indexOf('/email-unverified') == -1 ) {
+      console.log('track url to redirect to after login: '+path)
+      $window.localStorage.setItem('nextPath', path);
+    }
     
     angularAuth0.authorize({
       scope:'openid profile email'
@@ -81,37 +85,47 @@ app.service('AuthService',
         }
         
       } else if (err) {
-        $timeout(function() {
-          $state.go('home');
-        });
-        console.log(err);
-        alert('Error: ' + err.error + '. Check the console for further details.');
+        console.error(err);
+        if( err.errorDescription.indexOf('Please verify your email before logging in.') === 0 ) {
+          var userid = err.errorDescription.substring(err.errorDescription.indexOf('[')+1)
+          userid = userid.substring(0, userid.length-1);
+//          console.log('userid: '+userid);
+          $location.url('/email-unverified/'+userid);
+        } else {
+//        $timeout(function() {
+//          $state.go('home');
+//        });
+          console.log(err);
+          alert('Error: ' + err.error + '. Check the console for further details.');
+        }
       }
     });
   }
 
   function setSession(authResult) {
 //      console.log(authResult);
-//      let expiresAt = JSON.stringify((authResult.expiresIn * 1000) + new Date().getTime());
+    let expiresAt = (authResult.expiresIn * 1000) + new Date().getTime();
+    console.log('auth expires at '+expiresAt)
     var user = {
         userid: authResult.idTokenPayload.sub
       , email: authResult.idTokenPayload.email
       , name: authResult.idTokenPayload.nickname
+      , expiresAt: expiresAt
     }
     UserSession.create(user, authResult.accessToken);
   }
 
   function logout() {
     UserSession.destroy();
-//      $state.go('home');
+    
+    var currentUrl = window.location.href;
+    console.log(currentUrl)
+    window.location.href ='https://'+AUTH0_DOMAIN+'/v2/logout?returnTo='+currentUrl;
+    
   }
 
   function isAuthenticated() {
-    // Check whether the current time is past the 
-    // access token's expiry time
-//      let expiresAt = JSON.parse(localStorage.getItem('expires_at'));
-//      return new Date().getTime() < expiresAt;
-    return !!UserSession.user;
+    return !!UserSession.getUser();
   }
 
   return {
@@ -162,22 +176,32 @@ app.service('UserSession', ['$window',
     };
 
     this.getUser = function() {
+      var thisUser = null;
       switch(SESSION_PERSISTANCE) {
         case USER_ACTIVE_UNTIL.pageRefresh:
-          return user;
+          thisUser = user;
+          break;
         case USER_ACTIVE_UNTIL.sessionExpires:
-          var user = $window.sessionStorage.user;
-          if( user ) {
-            user = JSON.parse(user);
+          thisUser = $window.sessionStorage.user;
+          if( thisUser ) {
+            thisUser = JSON.parse(thisUser);
           }
-          return user;
+          break;
         case USER_ACTIVE_UNTIL.forever:
-          var user = $window.localStorage.user;
-          if( user ) {
-            user = JSON.parse(user);
+          thisUser = $window.localStorage.user;
+          if( thisUser ) {
+            thisUser = JSON.parse(thisUser);
           }
-          return user;
+          break;
       }
+      if( thisUser
+      &&  thisUser.expiresAt > new Date().getTime()) {
+        return thisUser;
+      } else {
+        this.destroy();
+        return null;
+      }
+      
     }
     
     this.getToken = function() {
@@ -207,9 +231,13 @@ app.service('UserSession', ['$window',
  ***********************************/
 app.factory('authHandler', [
     '$q'
+  , '$location'
+  , '$window'
   , 'UserSession'
   , 'AuthService'
   , function($q
+           , $location
+           , $window
            , UserSession
            , AuthService
            ) {
@@ -227,9 +255,19 @@ app.factory('authHandler', [
       responseError: function(rejection) {
         if (rejection != null && rejection.status === 401) {
           UserSession.destroy();
-          AuthService.login();
+          var path = $location.path();
+          if( path.indexOf('/auth-required') == -1
+          &&  path.indexOf('/email-unverified') == -1 ) {
+            console.log('track url to redirect to after login: '+path)
+            $window.localStorage.setItem('nextPath', path);
+          }
+          $location.url("/auth-required");
         }
 
+        if (rejection != null && rejection.status === 491) {
+          $location.url("/email-unverified");
+        }
+        
         return $q.reject(rejection);
       }
     };
