@@ -120,7 +120,10 @@ app.service('AuthService',
     
     var currentUrl = window.location.href;
     console.log(currentUrl)
-    window.location.href ='https://'+AUTH0_DOMAIN+'/v2/logout?returnTo='+currentUrl;
+    window.location.href ='https://'+AUTH0_DOMAIN+'/v2/logout'
+                         +'?client_id='+AUTH0_CLIENT_ID
+                         +'&returnTo='+currentUrl
+                         ;
     
   }
 
