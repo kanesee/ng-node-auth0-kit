@@ -14,6 +14,11 @@ if (!process.env.AUTH0_DOMAIN || !process.env.AUTH0_AUDIENCE) {
  * Using this middleware will require a valid authorization header
  **/
 exports.requireAuth = jwt({
+  /**
+   * Since the algorithm is RS256, which requires a public key to decode/verify
+   * the JWT idToken, we use jwks (json web key store) protocol to download it
+   * from the auth0 endpoint.
+   **/
   secret: jwksRsa.expressJwtSecret({
     cache: true,
     rateLimit: true,
