@@ -37,8 +37,7 @@ app.config(['$stateProvider','angularAuth0Provider',
     clientID: AUTH0_CLIENT_ID,
     domain: AUTH0_DOMAIN,
     responseType: 'token id_token',
-   // audience: 'https://' + AUTH0_DOMAIN + '/userinfo', // for client-side only authentication (securing html pages)
-    audience: AUTH0_AUDIENCE, // for server-side api authentication, you need to create an "Auth0 API" (securing rest calls)
+    audience: AUTH0_AUDIENCE,
     redirectUri: AUTH0_CALLBACK_URL,
     scope: 'openid'
   });
@@ -60,6 +59,16 @@ app.service('AuthService',
                       ,UserSession
                       ) {
 
+  function init() {
+    console.log('authService init');
+    angularAuth0.checkSession({
+        scope:'openid profile email'
+      }, function (err, authResult) {
+      _handleAuthentication(err, authResult)
+    });
+  }
+  init();
+
   function login() {
     var path = $location.path();
     if( path.indexOf('/auth-required') == -1
@@ -74,10 +83,12 @@ app.service('AuthService',
   }
 
   function handleAuthentication() {
-    angularAuth0.parseHash(function(err, authResult) {
+    angularAuth0.parseHash(_handleAuthentication);
+  }
+  
+  function _handleAuthentication(err, authResult) {
       if (authResult && authResult.accessToken && authResult.idToken) {
         setSession(authResult);
-//        $state.go('home');
         var nextPath = $window.localStorage.nextPath;
         console.log('redirecting to '+nextPath);
         if( nextPath ) {
@@ -92,15 +103,12 @@ app.service('AuthService',
 //          console.log('userid: '+userid);
           $location.url('/email-unverified/'+userid);
         } else {
-//        $timeout(function() {
-//          $state.go('home');
-//        });
           console.log(err);
           alert('Error: ' + err.error + '. Check the console for further details.');
         }
       }
-    });
   }
+
 
   function setSession(authResult) {
 //      console.log(authResult);
