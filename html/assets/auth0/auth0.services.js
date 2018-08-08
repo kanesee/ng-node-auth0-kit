@@ -29,8 +29,8 @@ app.constant('AUTH_EVENTS', {
 //});
 
 
-app.config(['$stateProvider','angularAuth0Provider', 
-            function($stateProvider, angularAuth0Provider) {
+app.config(['angularAuth0Provider', 
+            function(angularAuth0Provider) {
               
     
   angularAuth0Provider.init({
@@ -45,14 +45,12 @@ app.config(['$stateProvider','angularAuth0Provider',
 
 
 app.service('AuthService', 
-['$state'
-,'angularAuth0'
+['angularAuth0'
 ,'$timeout'
 ,'$window'
 ,'$location'
 ,'UserSession'
-, function authService($state
-                      ,angularAuth0
+, function authService(angularAuth0
                       ,$timeout
                       ,$window
                       ,$location
