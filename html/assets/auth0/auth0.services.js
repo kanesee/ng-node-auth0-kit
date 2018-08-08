@@ -9,7 +9,7 @@ const USER_ACTIVE_UNTIL = {
 }
 
 /** For Auth0, you should only use forever **/
-const SESSION_PERSISTANCE = USER_ACTIVE_UNTIL.sessionExpires;
+const SESSION_PERSISTANCE = USER_ACTIVE_UNTIL.forever;
 
 
 app.constant('AUTH_EVENTS', {
@@ -63,9 +63,11 @@ app.service('AuthService',
     console.log('authService init');
     angularAuth0.checkSession({
         scope:'openid profile email'
-      }, function (err, authResult) {
-      _handleAuthentication(err, authResult)
-    });
+      },
+      function (err, authResult) {
+        var redirectToNextPath = false;
+        _handleAuthentication(err, authResult, redirectToNextPath)
+      });
   }
   init();
 
@@ -83,25 +85,33 @@ app.service('AuthService',
   }
 
   function handleAuthentication() {
-    angularAuth0.parseHash(_handleAuthentication);
+    angularAuth0.parseHash(function(err, authResult) {
+      var redirectToNextPath = true;
+      _handleAuthentication(err, authResult, redirectToNextPath)
+    });
   }
   
-  function _handleAuthentication(err, authResult) {
+  function _handleAuthentication(err, authResult, redirectToNextPath) {
       if (authResult && authResult.accessToken && authResult.idToken) {
         setSession(authResult);
-        var nextPath = $window.localStorage.nextPath;
-        console.log('redirecting to '+nextPath);
-        if( nextPath ) {
-          $location.path(nextPath);
-        }
-        
+        if( redirectToNextPath ) {
+          var nextPath = $window.localStorage.nextPath;
+          console.log('redirecting to '+nextPath);
+          if( nextPath ) {
+            $location.path(nextPath);
+          }
+        }        
       } else if (err) {
-        console.error(err);
-        if( err.errorDescription.indexOf('Please verify your email before logging in.') === 0 ) {
+        // console.error(err);
+        if( err.errorDescription
+        &&  err.errorDescription.indexOf('Please verify your email before logging in.') === 0 ) {
           var userid = err.errorDescription.substring(err.errorDescription.indexOf('[')+1)
           userid = userid.substring(0, userid.length-1);
 //          console.log('userid: '+userid);
           $location.url('/email-unverified/'+userid);
+        } else
+        if( err.error == 'login_required' ) {
+          console.log('No auth0 logins found');
         } else {
           console.log(err);
           alert('Error: ' + err.error + '. Check the console for further details.');
