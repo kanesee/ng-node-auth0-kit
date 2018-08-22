@@ -57,6 +57,10 @@ app.service('AuthService',
                       ,UserSession
                       ) {
 
+  var is_ready = false;
+  
+  function isReady() { return is_ready; }
+
   function init() {
     console.log('authService init');
     angularAuth0.checkSession({
@@ -64,7 +68,8 @@ app.service('AuthService',
       },
       function (err, authResult) {
         var redirectToNextPath = false;
-        _handleAuthentication(err, authResult, redirectToNextPath)
+        _handleAuthentication(err, authResult, redirectToNextPath);
+        is_ready = true;
       });
   }
   init();
@@ -112,7 +117,6 @@ app.service('AuthService',
           console.log('No auth0 logins found');
         } else {
           console.log(err);
-          alert('Error: ' + err.error + '. Check the console for further details.');
         }
       }
   }
@@ -148,6 +152,7 @@ app.service('AuthService',
   }
 
   return {
+    isReady: isReady,
     login: login,
     handleAuthentication: handleAuthentication,
     logout: logout,
@@ -252,25 +257,36 @@ app.factory('authHandler', [
     '$q'
   , '$location'
   , '$window'
+  , '$timeout'
   , 'UserSession'
   , 'AuthService'
   , function($q
            , $location
            , $window
+           , $timeout
            , UserSession
            , AuthService
            ) {
-    return {
-      request: function(config) {
-        config.headers = config.headers || {};
-        var token = UserSession.getToken();
-        if( token
-        &&  !config.headers.Authorization
-        ) {
-            config.headers.Authorization = 'Bearer ' + token;
+    function sendRequest(config) {
+        if( !AuthService.isReady() ) {
+          return $timeout(sendRequest, 100, false, config)
+            .then(function(cfg) {
+              return cfg;
+            })
+        } else {
+          config.headers = config.headers || {};
+          var token = UserSession.getToken();
+          if( token
+          &&  !config.headers.Authorization
+          ) {
+              config.headers.Authorization = 'Bearer ' + token;
+          }
+          return config;
         }
-        return config;
-      },
+    }
+    
+    return {
+      request: sendRequest,
       responseError: function(rejection) {
         if (rejection != null && rejection.status === 401) {
           UserSession.destroy();
