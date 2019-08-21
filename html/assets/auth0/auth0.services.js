@@ -101,6 +101,7 @@ app.service('AuthService',
           var nextPath = $window.localStorage.nextPath;
           console.log('redirecting to '+nextPath);
           if( nextPath ) {
+            $window.localStorage.removeItem('nextPath');
             $location.path(nextPath);
           }
         }        
